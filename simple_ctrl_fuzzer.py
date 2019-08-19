@@ -7,6 +7,8 @@ import binascii
 
 from common import *
 
+RETRY_COUNT = 10
+
 def TestCtrlTransfer(device, rt, r, v, i):
 
     for size in (0, 10, 100, 4000):
@@ -18,8 +20,6 @@ def TestCtrlTransfer(device, rt, r, v, i):
         except usb.core.USBError as e:
             if (e.backend_error_code != -9 and e.backend_error_code != -1): # ignore LIBUSB_ERROR_PIPE and LIBUSB_ERROR_IO
                 print('OUT %0.2x %0.2x %0.4x %0.4x err(%i) len(%u)' % (rt&0x80, r, v, i, e.backend_error_code, size))
-            if e.backend_error_code == -4: # LIBUSB_ERROR_NO_DEVICE
-                raise e
         except Exception as eo:
             if not device:
                 raise eo
@@ -30,11 +30,20 @@ def TestCtrlTransfer(device, rt, r, v, i):
         except usb.core.USBError as e:
             if (e.backend_error_code != -9 and e.backend_error_code != -1): # ignore LIBUSB_ERROR_PIPE and LIBUSB_ERROR_IO
                 print('IN  %0.2x %0.2x %0.4x %0.4x err(%i) len(%u)' % (rt|0x80, r, v, i, e.backend_error_code, size))
-            if e.backend_error_code == -4: # LIBUSB_ERROR_NO_DEVICE
-                raise e
         except Exception as eo:
             if not device:
                 raise eo
+
+        count = 0
+        while True:
+            if count == RETRY_COUNT:
+                print("TIMEOUT")
+                sys.exit(-7)
+            (A, E) = is_alive(device)
+            if not A and E == -7:
+                count += 1
+            else:
+                break
 
 
 arg = sys.argv[1].split(':')

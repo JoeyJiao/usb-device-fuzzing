@@ -16,8 +16,8 @@ fp.close()
 for line in lines:
     if not line.startswith('IN') and not line.startswith('OUT'):
         continue
-    if 'err' in line:
-        continue
+#    if 'err' in line:
+#        continue
     line = line.replace('\t', ' ').replace('  ', ' ')
     params = line.split(' ')
     if params[0] == 'IN':

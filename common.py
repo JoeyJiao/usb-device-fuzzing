@@ -15,11 +15,14 @@ def is_alive(device):
             print("\nAccess denied to device!")
             sys.exit()
 
+        if e.backend_error_code == -7: # LIBUSB_ERROR_TIMEOUT
+            return (False, e.backend_error_code)
+
         print("\nGET_STATUS returned error %i" % e.backend_error_code)
-        return False
+        return (False, e.backend_error_code)
 
     if len(res) != 2:
         print("\nGET_STATUS returned %u bytes: %s" % (len(res), binascii.hexlify(res)))
-        return False
+        return (False, e.backend_error_code)
 
-    return True
+    return (True, 0)
